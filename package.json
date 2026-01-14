@@ -23,7 +23,10 @@
     "changeset": "changeset",
     "changeset:version": "node scripts/changeset-version.mjs",
     "changeset:publish": "changeset publish",
-    "changeset:status": "changeset status --since=origin/main"
+    "changeset:status": "changeset status --since=origin/main",
+    "app:install": "cd app && npm install",
+    "app:dev": "cd app && npm run dev",
+    "app:build": "cd app && npm run build"
   },
   "keywords": [
     "template",
@@ -53,13 +56,13 @@
   },
   "lint-staged": {
     "*.{js,mjs,cjs}": [
-      "eslint --fix --max-warnings 0",
-      "prettier --write",
-      "prettier --check"
+      "eslint --fix --max-warnings 0 --no-warn-ignored",
+      "prettier --write --ignore-unknown",
+      "prettier --check --ignore-unknown"
     ],
     "*.md": [
-      "prettier --write",
-      "prettier --check"
+      "prettier --write --ignore-unknown",
+      "prettier --check --ignore-unknown"
     ]
   }
 }

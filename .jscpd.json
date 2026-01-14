@@ -12,7 +12,9 @@
     "**/.changeset/**",
     "**/package-lock.json",
     "**/pnpm-lock.yaml",
-    "**/yarn.lock"
+    "**/yarn.lock",
+    "**/app/**",
+    "**/docs/**"
   ],
   "format": "console",
   "reporters": ["console", "html"],
