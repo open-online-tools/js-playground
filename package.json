@@ -1,6 +1,6 @@
 {
   "name": "js-playground",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Interactive JavaScript playground with live code execution and console output",
   "type": "module",
   "private": true,
