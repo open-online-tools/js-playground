@@ -203,6 +203,8 @@ jobs:
         run: deno test --allow-read
 
   # Release - only runs on main after tests pass (for push events)
+  # NOTE: NPM publishing removed - this is a static website, not an NPM package
+  # Only GitHub releases are created here; GitHub Pages deployment is in pages.yml
   release:
     name: Release
     needs: [lint, test]
@@ -210,11 +212,10 @@ jobs:
     # This is needed because lint/test jobs have a transitive dependency on changeset-check
     if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push' && needs.lint.result == 'success' && needs.test.result == 'success'
     runs-on: ubuntu-latest
-    # Permissions required for npm OIDC trusted publishing
+    # Permissions for GitHub releases only (removed id-token for NPM OIDC)
     permissions:
       contents: write
       pull-requests: write
-      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -224,13 +225,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm install
-
-      - name: Update npm for OIDC trusted publishing
-        run: node scripts/setup-npm.mjs
 
       - name: Check for changesets
         id: check_changesets
@@ -247,36 +244,34 @@ jobs:
         id: version
         run: node scripts/version-and-commit.mjs --mode changeset
 
-      - name: Publish to npm
-        # Run if version was committed OR if a previous attempt already committed (for re-runs)
-        if: steps.version.outputs.version_committed == 'true' || steps.version.outputs.already_released == 'true'
-        id: publish
-        run: node scripts/publish-to-npm.mjs --should-pull
+      # NPM publishing step removed - this project is a static website hosted on GitHub Pages
+      # If you need to restore NPM publishing, ensure:
+      # 1. Package is properly configured as a library (not a web app)
+      # 2. NPM authentication is set up
+      # 3. Package name is registered on NPM registry
 
       - name: Create GitHub Release
-        if: steps.publish.outputs.published == 'true'
+        if: steps.version.outputs.version_committed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/create-github-release.mjs --release-version "${{ steps.publish.outputs.published_version }}" --repository "${{ github.repository }}"
+        run: node scripts/create-github-release.mjs --release-version "${{ steps.version.outputs.new_version }}" --repository "${{ github.repository }}"
 
       - name: Format GitHub release notes
-        if: steps.publish.outputs.published == 'true'
+        if: steps.version.outputs.version_committed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/format-github-release.mjs --release-version "${{ steps.publish.outputs.published_version }}" --repository "${{ github.repository }}" --commit-sha "${{ github.sha }}"
+        run: node scripts/format-github-release.mjs --release-version "${{ steps.version.outputs.new_version }}" --repository "${{ github.repository }}" --commit-sha "${{ github.sha }}"
 
   # Manual Instant Release - triggered via workflow_dispatch with instant mode
-  # This job is in release.yml because npm trusted publishing
-  # only allows one workflow file to be registered as a trusted publisher
+  # NOTE: NPM publishing removed - creates GitHub releases only
   instant-release:
     name: Instant Release
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.release_mode == 'instant'
     runs-on: ubuntu-latest
-    # Permissions required for npm OIDC trusted publishing
+    # Permissions for GitHub releases only (removed id-token for NPM OIDC)
     permissions:
       contents: write
       pull-requests: write
-      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -286,35 +281,27 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm install
-
-      - name: Update npm for OIDC trusted publishing
-        run: node scripts/setup-npm.mjs
 
       - name: Version packages and commit to main
         id: version
         run: node scripts/version-and-commit.mjs --mode instant --bump-type "${{ github.event.inputs.bump_type }}" --description "${{ github.event.inputs.description }}"
 
-      - name: Publish to npm
-        # Run if version was committed OR if a previous attempt already committed (for re-runs)
-        if: steps.version.outputs.version_committed == 'true' || steps.version.outputs.already_released == 'true'
-        id: publish
-        run: node scripts/publish-to-npm.mjs
+      # NPM publishing step removed - this project is a static website hosted on GitHub Pages
 
       - name: Create GitHub Release
-        if: steps.publish.outputs.published == 'true'
+        if: steps.version.outputs.version_committed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/create-github-release.mjs --release-version "${{ steps.publish.outputs.published_version }}" --repository "${{ github.repository }}"
+        run: node scripts/create-github-release.mjs --release-version "${{ steps.version.outputs.new_version }}" --repository "${{ github.repository }}"
 
       - name: Format GitHub release notes
-        if: steps.publish.outputs.published == 'true'
+        if: steps.version.outputs.version_committed == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/format-github-release.mjs --release-version "${{ steps.publish.outputs.published_version }}" --repository "${{ github.repository }}" --commit-sha "${{ github.sha }}"
+        run: node scripts/format-github-release.mjs --release-version "${{ steps.version.outputs.new_version }}" --repository "${{ github.repository }}" --commit-sha "${{ github.sha }}"
 
   # Manual Changeset PR - creates a pull request with the changeset for review
   changeset-pr:

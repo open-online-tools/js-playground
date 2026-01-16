@@ -1,16 +1,9 @@
 {
-  "name": "my-package",
+  "name": "js-playground",
   "version": "0.5.0",
-  "description": "A JavaScript/TypeScript package template for AI-driven development",
+  "description": "Interactive JavaScript playground with live code execution and console output",
   "type": "module",
-  "main": "src/index.js",
-  "types": "src/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./src/index.d.ts",
-      "import": "./src/index.js"
-    }
-  },
+  "private": true,
   "scripts": {
     "test": "node --test tests/",
     "lint": "eslint .",
@@ -29,17 +22,19 @@
     "app:build": "cd app && npm run build"
   },
   "keywords": [
-    "template",
+    "playground",
     "javascript",
-    "typescript",
-    "ai-driven"
+    "repl",
+    "interactive",
+    "code-editor"
   ],
   "author": "",
   "license": "Unlicense",
   "repository": {
     "type": "git",
-    "url": "https://github.com/link-foundation/js-ai-driven-development-pipeline-template"
+    "url": "https://github.com/open-online-tools/js-playground"
   },
+  "homepage": "https://open-online-tools.github.io/js-playground/",
   "engines": {
     "node": ">=20.0.0"
   },
